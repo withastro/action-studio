@@ -1,0 +1,17 @@
+name: "Astro Studio"
+description: "Check `astro:db` schema"
+author: 'withastro'
+
+branding:
+  icon: 'astro'
+  color: 'purple'
+
+inputs:
+  milliseconds:
+    description: 'Your input description here'
+    required: true
+    default: '1000'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.mjs'
