@@ -12,6 +12,7 @@ async function run(): Promise<void> {
     octokit = github.getOctokit(token)
     const { repo, payload } = github.context
     const issue_number = payload.pull_request?.number
+    core.info(JSON.stringify(payload, null, 2))
 
     const { success, message } = await verify();
 
