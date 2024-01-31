@@ -12,13 +12,16 @@ async function run(): Promise<void> {
     octokit = github.getOctokit(token)
     const { repo, payload } = github.context
     const issue_number = payload.pull_request?.number
-    
+
+    const { success, message } = await verify();
+
     if (!issue_number) {
-      throw new Error('This action must be triggered by a pull_request event')
+      const method = success ? 'info' : 'setFailed';
+      core[method](message);
+      process.exit(success ? 0 : 1);
     }
 
-    const status = await verify();
-    const comment = { ...repo, issue_number, body: status };
+    const comment = { ...repo, issue_number, body: message };
     const comment_id = await getCommentId({ ...repo, issue_number })
 
     if (comment_id) {
@@ -44,9 +47,9 @@ async function verify() {
   const bin = path.join(path.dirname(root), 'astro.js')
   const { exitCode } = await execa(bin, ['db', 'verify'], { encoding: 'utf8' })
   if (exitCode === 0) {
-    return 'Migrations directory is in sync!'
+    return { success: true, message: 'Migrations directory is in sync!' }
   } else {
-    return 'Migrations directory is NOT in sync!'
+    return { success: false, message: 'Migrations directory is NOT in sync!' }
   }
 }
 
