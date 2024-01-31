@@ -35,6 +35,21 @@ import os$2, { constants as constants$5 } from 'node:os';
 import { createWriteStream, createReadStream } from 'node:fs';
 import { setTimeout as setTimeout$1 } from 'node:timers/promises';
 
+function _mergeNamespaces(n, m) {
+	m.forEach(function (e) {
+		e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
+			if (k !== 'default' && !(k in n)) {
+				var d = Object.getOwnPropertyDescriptor(e, k);
+				Object.defineProperty(n, k, d.get ? d : {
+					enumerable: true,
+					get: function () { return e[k]; }
+				});
+			}
+		});
+	});
+	return Object.freeze(n);
+}
+
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 function getDefaultExportFromCjs (x) {
@@ -66,7 +81,7 @@ function getAugmentedNamespace(n) {
 	return a;
 }
 
-var core$1 = {};
+var core$3 = {};
 
 var command = {};
 
@@ -25516,7 +25531,7 @@ function requirePathUtils () {
 var hasRequiredCore;
 
 function requireCore () {
-	if (hasRequiredCore) return core$1;
+	if (hasRequiredCore) return core$3;
 	hasRequiredCore = 1;
 	(function (exports) {
 		var __createBinding = (commonjsGlobal && commonjsGlobal.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -25854,11 +25869,17 @@ function requireCore () {
 		Object.defineProperty(exports, "toWin32Path", { enumerable: true, get: function () { return path_utils_1.toWin32Path; } });
 		Object.defineProperty(exports, "toPlatformPath", { enumerable: true, get: function () { return path_utils_1.toPlatformPath; } });
 		
-	} (core$1));
-	return core$1;
+	} (core$3));
+	return core$3;
 }
 
 var coreExports = requireCore();
+var core$1 = /*@__PURE__*/getDefaultExportFromCjs(coreExports);
+
+var core$2 = /*#__PURE__*/_mergeNamespaces({
+	__proto__: null,
+	default: core$1
+}, [coreExports]);
 
 var github = {};
 
@@ -32545,11 +32566,14 @@ async function run() {
     octokit = getOctokit_1(token);
     const { repo, payload } = context;
     const issue_number = payload.pull_request?.number;
+    coreExports.info(JSON.stringify(payload, null, 2));
+    const { success, message } = await verify();
     if (!issue_number) {
-      throw new Error("This action must be triggered by a pull_request event");
+      const method = success ? "info" : "setFailed";
+      core$2[method](message);
+      return;
     }
-    const status = await verify();
-    const comment = { ...repo, issue_number, body: status };
+    const comment = { ...repo, issue_number, body: message };
     const comment_id = await getCommentId({ ...repo, issue_number });
     if (comment_id) {
       await octokit.rest.issues.updateComment({
@@ -32572,11 +32596,16 @@ async function verify() {
     throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`);
   }
   const bin = path$4.join(path$4.dirname(root), "astro.js");
-  const { exitCode } = await execa(bin, ["db", "verify"], { encoding: "utf8" });
-  if (exitCode === 0) {
-    return "Migrations directory is in sync!";
-  } else {
-    return "Migrations directory is NOT in sync!";
+  try {
+    const result = await execa(bin, ["db", "verify"], { encoding: "utf8", detached: true, reject: false });
+    console.log(result);
+    if (result.exitCode === 0) {
+      return { success: true, message: "Migrations directory is in sync!" };
+    } else {
+      return { success: false, message: "Migrations directory is NOT in sync!" };
+    }
+  } catch (e) {
+    return { success: false, message: "Project has not been initialized!" };
   }
 }
 async function getCommentId(params) {
