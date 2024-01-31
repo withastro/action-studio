@@ -46,18 +46,13 @@ async function verify() {
     throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`)
   }
   const bin = path.join(path.dirname(root), 'astro.js')
-  try {
-    const { exitCode, stdout, stderr } = await execa(bin, ['db', 'verify'], { encoding: 'utf8', detached: true })
-    if (exitCode === 0) {
-      console.log({ stdout })
-      return { success: true, message: 'Migrations directory is in sync!' }
-    } else {
-      console.log({ stderr })
-      return { success: false, message: 'Migrations directory is NOT in sync!' }
-    }
-  } catch (e) {
-    console.error(e)
-    return { success: false, message: 'Something went wrong while attempting to verify your migrations' }
+  const { exitCode, stdout } = await execa(bin, ['db', 'verify'], { encoding: 'utf8', detached: true, reject: false })
+  if (exitCode === 0) {
+    console.log({ stdout })
+    return { success: true, message: 'Migrations directory is in sync!' }
+  } else {
+    console.log({ stdout })
+    return { success: false, message: 'Migrations directory is NOT in sync!' }
   }
 }
 
