@@ -1,17 +1,17 @@
-name: "Astro Studio"
+name: Astro Studio
 description: "Check `astro:db` schema"
-author: 'withastro'
+author: withastro
 
 branding:
-  icon: 'astro'
-  color: 'purple'
+  icon: astro
+  color: purple
 
 inputs:
-  milliseconds:
-    description: 'Your input description here'
-    required: true
-    default: '1000'
+  github-token:
+    description: The GitHub token used to create an authenticated client
+    default: ${{ github.token }}
+    required: false
 
 runs:
-  using: 'node20'
-  main: 'dist/index.mjs'
+  using: node20
+  main: dist/index.mjs

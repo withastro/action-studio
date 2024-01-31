@@ -1,22 +1,64 @@
 import * as core from '@actions/core'
-import { cli } from '@astrojs/db';
+import * as github from '@actions/github'
 
-/**
- * The main function for the action.
- * @returns {Promise<void>} Resolves when the action is complete.
- */
+import path from 'node:path'
+import resolve from 'resolve-package-path'
+import { execa } from 'execa'
+
+let octokit: ReturnType<typeof github['getOctokit']>;
 async function run(): Promise<void> {
   try {
-    const input: string = core.getInput('input')
+    const token = core.getInput('github-token')
+    octokit = github.getOctokit(token)
+    const { repo, payload } = github.context
+    const issue_number = payload.pull_request?.number
+    
+    if (!issue_number) {
+      throw new Error('This action must be triggered by a pull_request event')
+    }
 
-    await cli({ flags: ['verify'], config: {} })
+    const status = await verify();
+    const comment = { ...repo, issue_number, body: status };
+    const comment_id = await getCommentId({ ...repo, issue_number })
 
-    // Set outputs for other workflow steps to use
-    core.setOutput('value', new Date().toTimeString())
+    if (comment_id) {
+      await octokit.rest.issues.updateComment({
+        ...comment,
+        comment_id
+      })
+    } else {
+      await octokit.rest.issues.createComment({
+        ...comment,
+      })
+    }
   } catch (error) {
-    // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
   }
 }
 
-run();
+async function verify() {
+  const root = resolve('astro', process.cwd())
+  if (!root) {
+    throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`)
+  }
+  const bin = path.join(path.dirname(root), 'astro.js')
+  const { exitCode } = await execa(bin, ['db', 'verify'], { encoding: 'utf8' })
+  if (exitCode === 0) {
+    return 'Migrations directory is in sync!'
+  } else {
+    return 'Migrations directory is NOT in sync!'
+  }
+}
+
+async function getCommentId(
+  params: { repo: string; owner: string; issue_number: number }
+) { 
+  const comments = await octokit.rest.issues.listComments(params)
+  const botComment = comments.data.find(
+      (comment) =>
+        comment.user?.login === "astro-studio-bot[bot]"
+    )
+    return botComment ? botComment.id : null
+}
+
+run()
