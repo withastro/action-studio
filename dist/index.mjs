@@ -32597,21 +32597,23 @@ async function verify() {
   }
   const bin = path$4.join(path$4.dirname(root), "astro.js");
   try {
-    const result = await execa(bin, ["db", "verify"], { encoding: "utf8", detached: true, reject: false });
-    console.log(result);
-    if (result.exitCode === 0) {
+    const { exitCode, stdout, stderr } = await execa(bin, ["db", "verify"], { encoding: "utf8", detached: true });
+    if (exitCode === 0) {
+      console.log({ stdout });
       return { success: true, message: "Migrations directory is in sync!" };
     } else {
+      console.log({ stderr });
       return { success: false, message: "Migrations directory is NOT in sync!" };
     }
   } catch (e) {
-    return { success: false, message: "Project has not been initialized!" };
+    console.error(e);
+    return { success: false, message: "Something went wrong while attempting to verify your migrations" };
   }
 }
 async function getCommentId(params) {
   const comments = await octokit.rest.issues.listComments(params);
   const botComment = comments.data.find(
-    (comment) => comment.user?.login === "astro-studio-bot[bot]"
+    (comment) => comment.user?.login === "github-actions[bot]" && comment.body_text?.toLowerCase().includes("migrations")
   );
   return botComment ? botComment.id : null;
 }
