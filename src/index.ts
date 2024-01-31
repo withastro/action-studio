@@ -4,9 +4,12 @@ import * as github from '@actions/github'
 import path from 'node:path'
 import resolve from 'resolve-package-path'
 import { execa } from 'execa'
+import { setupUser } from './git.ts'
 
 let octokit: ReturnType<typeof github['getOctokit']>;
 async function run(): Promise<void> {
+  await setupUser();
+
   try {
     const token = core.getInput('github-token')
     octokit = github.getOctokit(token)

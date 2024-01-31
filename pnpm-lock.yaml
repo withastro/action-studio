@@ -8,6 +8,9 @@ devDependencies:
   '@actions/core':
     specifier: ^1.10.1
     version: 1.10.1
+  '@actions/exec':
+    specifier: ^1.1.1
+    version: 1.1.1
   '@actions/github':
     specifier: ^6.0.0
     version: 6.0.0
@@ -36,6 +39,12 @@ packages:
       uuid: 8.3.2
     dev: true
 
+  /@actions/exec@1.1.1:
+    resolution: {integrity: sha512-+sCcHHbVdk93a0XT19ECtO/gIXoxvdsgQLzb2fE2/5sIZmWQuluYyjPQtrtTHdU1YzTZ7bAPN4sITq2xi1679w==}
+    dependencies:
+      '@actions/io': 1.1.3
+    dev: true
+
   /@actions/github@6.0.0:
     resolution: {integrity: sha512-alScpSVnYmjNEXboZjarjukQEzgCRmjMv6Xj47fsdnqGS73bjJNDpiiXmp8jr0UZLdUB6d9jW63IcmddUP+l0g==}
     dependencies:
@@ -50,6 +59,10 @@ packages:
     dependencies:
       tunnel: 0.0.6
       undici: 5.28.2
+    dev: true
+
+  /@actions/io@1.1.3:
+    resolution: {integrity: sha512-wi9JjgKLYS7U/z8PPbco+PvTb/nRWjeoFlJ1Qer83k/3C5PHQi28hiVdeE2kHXmIL99mQFawx8qt/JPjZilJ8Q==}
     dev: true
 
   /@esbuild/android-arm64@0.18.20:
