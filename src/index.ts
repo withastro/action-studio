@@ -47,7 +47,7 @@ async function verify() {
   }
   const bin = path.join(path.dirname(root), 'astro.js')
   try {
-    const result = await execa(bin, ['db', 'verify'], { encoding: 'utf8', reject: false })
+    const result = await execa(bin, ['db', 'verify'], { encoding: 'utf8', detached: true, reject: false })
     console.log(result);
     if (result.exitCode === 0) {
       return { success: true, message: 'Migrations directory is in sync!' }
