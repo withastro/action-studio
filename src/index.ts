@@ -18,7 +18,7 @@ async function run(): Promise<void> {
     if (!issue_number) {
       const method = success ? 'info' : 'setFailed';
       core[method](message);
-      process.exit(success ? 0 : 1);
+      return;
     }
 
     const comment = { ...repo, issue_number, body: message };
