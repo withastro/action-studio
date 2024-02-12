@@ -11,10 +11,15 @@ async function run(): Promise<void> {
     const token = core.getInput('github-token')
     octokit = github.getOctokit(token)
     const { eventName, repo, payload } = github.context
-    console.log({ eventName, payload });
-    const issue_number = payload.pull_request?.number
-    core.info(JSON.stringify(payload, null, 2))
 
+    // On push to default branch, push to Astro Studio
+    if (eventName === 'push' && payload.ref === `refs/heads/${payload.repository.default_branch}`) {
+	await push();
+        return;
+    }
+
+    // Otherwise, run verify and leave a PR comment
+    const issue_number = payload.pull_request?.number
     const { success, message } = await verify();
 
     if (!issue_number) {
