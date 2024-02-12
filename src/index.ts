@@ -13,7 +13,7 @@ async function run(): Promise<void> {
     const { eventName, repo, payload } = github.context
 
     // On push to default branch, push to Astro Studio
-    if (eventName === 'push' && payload.ref === `refs/heads/${payload.repository.default_branch}`) {
+    if (eventName === 'push' && payload.ref === `refs/heads/${payload.repository?.default_branch ?? 'main'}`) {
 	await push();
         return;
     }
