@@ -4,12 +4,9 @@ import * as github from '@actions/github'
 import path from 'node:path'
 import resolve from 'resolve-package-path'
 import { execa } from 'execa'
-import { setupUser } from './git.ts'
 
 let octokit: ReturnType<typeof github['getOctokit']>;
 async function run(): Promise<void> {
-  await setupUser();
-
   try {
     const token = core.getInput('github-token')
     octokit = github.getOctokit(token)
@@ -49,14 +46,14 @@ async function verify() {
     throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`)
   }
   const bin = path.join(path.dirname(root), 'astro.js')
-  const { exitCode, stdout } = await execa(bin, ['db', 'verify'], { encoding: 'utf8', detached: true, reject: false })
-  if (exitCode === 0) {
-    console.log({ stdout })
-    return { success: true, message: 'Migrations directory is in sync!' }
-  } else {
-    console.log({ stdout })
-    return { success: false, message: 'Migrations directory is NOT in sync!' }
+  const { stdout } = await execa(bin, ['db', 'verify', '--json'], { encoding: 'utf8', detached: true, reject: false })
+  const status = JSON.parse(stdout);
+  switch (status.state) {
+    case 'no-migrations-found': return { success: false, message: 'No migrations found!\nTo scaffold your migrations folder, run `astro db sync`.\n' }
+		case 'ahead': return { success: false, message: 'Changes detected! To create the necessary migration file, run `astro db sync`.\n' }
+		case 'up-to-date': return { success: true, message: 'No migrations needed!\nYour database is up to date.' }
   }
+  return { success: false, message: 'Unable to run `astro db verify`! Does your action install the `astro` package?' }
 }
 
 async function getCommentId(
@@ -66,7 +63,7 @@ async function getCommentId(
   const botComment = comments.data.find(
       (comment) =>
         comment.user?.login === "github-actions[bot]" &&
-        comment.body_text?.toLowerCase().includes('migrations')
+        comment.body_text?.toLowerCase().includes('migration')
     )
     return botComment ? botComment.id : null
 }
