@@ -32565,9 +32565,11 @@ async function run() {
     const token = coreExports.getInput("github-token");
     octokit = getOctokit_1(token);
     const { eventName, repo, payload } = context;
-    console.log({ eventName, payload });
+    if (eventName === "push" && payload.ref === `refs/heads/${payload.repository.default_branch}`) {
+      await push();
+      return;
+    }
     const issue_number = payload.pull_request?.number;
-    coreExports.info(JSON.stringify(payload, null, 2));
     const { success, message } = await verify();
     if (!issue_number) {
       const method = success ? "info" : "setFailed";
@@ -32590,6 +32592,14 @@ async function run() {
     if (error instanceof Error)
       coreExports.setFailed(error.message);
   }
+}
+async function push() {
+  const root = resolve("astro", process.cwd());
+  if (!root) {
+    throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`);
+  }
+  const bin = path$4.join(path$4.dirname(root), "astro.js");
+  await execa(bin, ["db", "push"], { encoding: "utf8", detached: true, reject: false });
 }
 async function verify() {
   const root = resolve("astro", process.cwd());
