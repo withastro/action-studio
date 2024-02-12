@@ -32565,7 +32565,7 @@ async function run() {
     const token = coreExports.getInput("github-token");
     octokit = getOctokit_1(token);
     const { eventName, repo, payload } = context;
-    if (eventName === "push" && payload.ref === `refs/heads/${payload.repository.default_branch}`) {
+    if (eventName === "push" && payload.ref === `refs/heads/${payload.repository?.default_branch ?? "main"}`) {
       await push();
       return;
     }
