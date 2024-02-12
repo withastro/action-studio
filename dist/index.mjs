@@ -32564,7 +32564,8 @@ async function run() {
   try {
     const token = coreExports.getInput("github-token");
     octokit = getOctokit_1(token);
-    const { repo, payload } = context;
+    const { eventName, repo, payload } = context;
+    console.log({ eventName, payload });
     const issue_number = payload.pull_request?.number;
     coreExports.info(JSON.stringify(payload, null, 2));
     const { success, message } = await verify();
