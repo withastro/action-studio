@@ -10,7 +10,8 @@ async function run(): Promise<void> {
   try {
     const token = core.getInput('github-token')
     octokit = github.getOctokit(token)
-    const { repo, payload } = github.context
+    const { eventName, repo, payload } = github.context
+    console.log({ eventName, payload });
     const issue_number = payload.pull_request?.number
     core.info(JSON.stringify(payload, null, 2))
 
@@ -38,6 +39,15 @@ async function run(): Promise<void> {
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
+}
+
+async function push() {
+  const root = resolve('astro', process.cwd())
+  if (!root) {
+    throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`)
+  }
+  const bin = path.join(path.dirname(root), 'astro.js')
+  await execa(bin, ['db', 'push'], { encoding: 'utf8', detached: true, reject: false })
 }
 
 async function verify() {
