@@ -32570,7 +32570,7 @@ async function run() {
       return;
     }
     const issue_number = payload.pull_request?.number;
-    const { success, message } = await verify();
+    const { success, message } = await verify(context);
     if (!issue_number) {
       const method = success ? "info" : "setFailed";
       core$2[method](message);
@@ -32601,7 +32601,7 @@ async function push() {
   const bin = path$4.join(path$4.dirname(root), "astro.js");
   await execa(bin, ["db", "push"], { encoding: "utf8", detached: true, reject: false });
 }
-async function verify() {
+async function verify(context) {
   const root = resolve("astro", process.cwd());
   if (!root) {
     throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`);
@@ -32612,12 +32612,23 @@ async function verify() {
   switch (status.state) {
     case "no-migrations-found":
       return { success: false, message: "No migrations found!\nTo scaffold your migrations folder, run `astro db sync`.\n" };
-    case "ahead":
-      return { success: false, message: "Changes detected! To create the necessary migration file, run `astro db sync`.\n" };
+    case "ahead": {
+      let instructions = "";
+      if (status.newFileContent) {
+        instructions = `[Commit a migration file](${getAddMigrationURL(context, status)}).`;
+      } else {
+        instructions = `Create the necessary migration file by running \`astro db sync\`.`;
+      }
+      return { success: false, message: `Changes detected! ${instructions}
+` };
+    }
     case "up-to-date":
       return { success: true, message: "No migrations needed!\nYour database is up to date." };
   }
   return { success: false, message: "Unable to run `astro db verify`! Does your action install the `astro` package?" };
+}
+function getAddMigrationURL(context, status) {
+  return `${context.payload.pull_request.head.repo.html_url}/new/${context.payload.pull_request.head.ref}?filename=./migrations/${status.newFilename}&value=${encodeURIComponent(status.newFileContent)}`;
 }
 async function getCommentId(params) {
   const comments = await octokit.rest.issues.listComments(params);
