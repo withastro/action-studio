@@ -32628,7 +32628,7 @@ async function verify(context) {
   return { success: false, message: "Unable to run `astro db verify`! Does your action install the `astro` package?" };
 }
 function getAddMigrationURL(context, status) {
-  return `${context.payload.pull_request.head.repo.html_url}/new/${context.payload.pull_request.head.ref}?filename=./migrations/${status.newFilename}&value=${encodeURIComponent(status.newFileContent)}`;
+  return `${context.payload.pull_request.head.repo.html_url}/new/${context.payload.pull_request.head.ref}?filename=migrations/${status.newFilename}&value=${encodeURIComponent(status.newFileContent)}`;
 }
 async function getCommentId(params) {
   const comments = await octokit.rest.issues.listComments(params);
