@@ -80,7 +80,7 @@ async function verify(context: typeof github.context) {
 }
 
 function getAddMigrationURL(context: typeof github.context, status: any) {
-  return `${context.payload.pull_request!.head.repo.html_url}/new/${context.payload.pull_request!.head.ref}?filename=./migrations/${status.newFilename}&value=${encodeURIComponent(status.newFileContent)}`;
+  return `${context.payload.pull_request!.head.repo.html_url}/new/${context.payload.pull_request!.head.ref}?filename=migrations/${status.newFilename}&value=${encodeURIComponent(status.newFileContent)}`;
 }
 
 async function getCommentId(
