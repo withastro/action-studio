@@ -32566,7 +32566,6 @@ async function run() {
     const token = coreExports.getInput("github-token");
     octokit = getOctokit_1(token);
     const { eventName, repo, payload } = context;
-    console.log(payload.ref_name);
     if (eventName === "push") {
       await push();
       return;
