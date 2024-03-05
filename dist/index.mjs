@@ -32609,15 +32609,22 @@ async function verify(context) {
     throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`);
   }
   const bin = path$4.join(path$4.dirname(root), "astro.js");
-  const { all, exitCode } = await execa(bin, ["db", "verify"], { encoding: "utf8", detached: true, reject: false, all: true });
-  if (exitCode === 0) {
-    return { success: true, message: all.toString() };
-  } else {
-    return { success: false, message: all.toString() };
-  }
+  const { stdout } = await execa(bin, ["db", "verify", "--json"], { encoding: "utf8", detached: true, reject: false, all: true });
+  const result = JSON.parse(stdout.toString());
+  return result;
 }
-function formatVerifyResult({ success, message }) {
-  return UNIQUE_IDENTIFIER + "\n" + message;
+function formatVerifyResult(result) {
+  const { code, message, data } = result;
+  if (code === "MATCH") {
+    return "Your database schema is up-to-date.";
+  }
+  if (code === "NO_MATCH") {
+    return "Your database schema is ahead of production database.\nIt can be automatically migrated by Astro.";
+  }
+  if (code === "DATA_LOSS") {
+    return message;
+  }
+  return "Unknown error: " + JSON.stringify(result);
 }
 async function getCommentId(params) {
   const comments = await octokit.rest.issues.listComments(params);
