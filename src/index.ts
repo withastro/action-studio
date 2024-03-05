@@ -14,21 +14,23 @@ async function run(): Promise<void> {
 
     // On push to default branch, push to Astro Studio
     if (eventName === 'push' && payload.ref === `refs/heads/${payload.repository?.default_branch ?? 'main'}`) {
-        await push();
-        return;
+      await push();
+      return;
     }
 
     // Otherwise, run verify and leave a PR comment
     const issue_number = payload.pull_request?.number
-    const { success, message } = await verify(github.context);
+    const verifyResult = await verify(github.context);
+    const formattedMessage = formatVerifyResult(verifyResult);
 
+    // TODO: different message for success vs. failure
     if (!issue_number) {
-      const method = success ? 'info' : 'setFailed';
-      core[method](message);
+      const method = verifyResult.success ? 'info' : 'setFailed';
+      core[method](formattedMessage);
       return;
     }
 
-    const comment = { ...repo, issue_number, body: message };
+    const comment = { ...repo, issue_number, body: formattedMessage };
     const comment_id = await getCommentId({ ...repo, issue_number })
 
     if (comment_id) {
@@ -61,22 +63,17 @@ async function verify(context: typeof github.context) {
     throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`)
   }
   const bin = path.join(path.dirname(root), 'astro.js')
-  const { stdout } = await execa(bin, ['db', 'verify', '--json'], { encoding: 'utf8', detached: true, reject: false })
-  const status = JSON.parse(stdout);
-  switch (status.state) {
-    case 'no-migrations-found': return { success: false, message: 'No migrations found!\nTo scaffold your migrations folder, run `astro db sync`.\n' }
-		case 'ahead': {
-      let instructions = '';
-      if (status.newFileContent) {
-        instructions = `[Commit a migration file](${getAddMigrationURL(context, status)}).`
-      } else {
-        instructions = `Create the necessary migration file by running \`astro db sync\`.`
-      }
-      return { success: false, message: `Changes detected! ${instructions}\n` }
-    }
-		case 'up-to-date': return { success: true, message: 'No migrations needed!\nYour database is up to date.' }
+  const{ all, exitCode } = await execa(bin, ['db', 'verify'], { encoding: 'utf8', detached: true, reject: false, all: true })
+  if (exitCode === 0) {
+    return { success: true, message: all.toString() }
+  } else {
+    return { success: false, message: all.toString() }
   }
-  return { success: false, message: 'Unable to run `astro db verify`! Does your action install the `astro` package?' }
+}
+
+function formatVerifyResult({ success, message }: { success: boolean, message: string }) {
+  // TODO: Format this message 
+  return message;
 }
 
 function getAddMigrationURL(context: typeof github.context, status: any) {
@@ -85,14 +82,14 @@ function getAddMigrationURL(context: typeof github.context, status: any) {
 
 async function getCommentId(
   params: { repo: string; owner: string; issue_number: number }
-) { 
+) {
   const comments = await octokit.rest.issues.listComments(params)
   const botComment = comments.data.find(
-      (comment) =>
-        comment.user?.login === "github-actions[bot]" &&
-        comment.body_text?.toLowerCase().includes('migration')
-    )
-    return botComment ? botComment.id : null
+    (comment) =>
+      comment.user?.login === "github-actions[bot]" &&
+      comment.body_text?.toLowerCase().includes('migration')
+  )
+  return botComment ? botComment.id : null
 }
 
 run()
