@@ -32559,6 +32559,7 @@ function execa(file, args, options) {
 	return spawned;
 }
 
+const UNIQUE_IDENTIFIER = "<!-- @astrojs/action-studio -->";
 let octokit;
 async function run() {
   try {
@@ -32616,12 +32617,12 @@ async function verify(context) {
   }
 }
 function formatVerifyResult({ success, message }) {
-  return message;
+  return UNIQUE_IDENTIFIER + "\n" + message;
 }
 async function getCommentId(params) {
   const comments = await octokit.rest.issues.listComments(params);
   const botComment = comments.data.find(
-    (comment) => comment.user?.login === "github-actions[bot]" && comment.body_text?.toLowerCase().includes("migration")
+    (comment) => comment.user?.login === "github-actions[bot]" && comment.body?.toLowerCase().includes(UNIQUE_IDENTIFIER)
   );
   return botComment ? botComment.id : null;
 }
