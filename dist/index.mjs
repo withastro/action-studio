@@ -32570,13 +32570,14 @@ async function run() {
       return;
     }
     const issue_number = payload.pull_request?.number;
-    const { success, message } = await verify(context);
+    const verifyResult = await verify(context);
+    const formattedMessage = formatVerifyResult(verifyResult);
     if (!issue_number) {
-      const method = success ? "info" : "setFailed";
-      core$2[method](message);
+      const method = verifyResult.success ? "info" : "setFailed";
+      core$2[method](formattedMessage);
       return;
     }
-    const comment = { ...repo, issue_number, body: message };
+    const comment = { ...repo, issue_number, body: formattedMessage };
     const comment_id = await getCommentId({ ...repo, issue_number });
     if (comment_id) {
       await octokit.rest.issues.updateComment({
@@ -32607,28 +32608,15 @@ async function verify(context) {
     throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`);
   }
   const bin = path$4.join(path$4.dirname(root), "astro.js");
-  const { stdout } = await execa(bin, ["db", "verify", "--json"], { encoding: "utf8", detached: true, reject: false });
-  const status = JSON.parse(stdout);
-  switch (status.state) {
-    case "no-migrations-found":
-      return { success: false, message: "No migrations found!\nTo scaffold your migrations folder, run `astro db sync`.\n" };
-    case "ahead": {
-      let instructions = "";
-      if (status.newFileContent) {
-        instructions = `[Commit a migration file](${getAddMigrationURL(context, status)}).`;
-      } else {
-        instructions = `Create the necessary migration file by running \`astro db sync\`.`;
-      }
-      return { success: false, message: `Changes detected! ${instructions}
-` };
-    }
-    case "up-to-date":
-      return { success: true, message: "No migrations needed!\nYour database is up to date." };
+  const { all, exitCode } = await execa(bin, ["db", "verify"], { encoding: "utf8", detached: true, reject: false, all: true });
+  if (exitCode === 0) {
+    return { success: true, message: all.toString() };
+  } else {
+    return { success: false, message: all.toString() };
   }
-  return { success: false, message: "Unable to run `astro db verify`! Does your action install the `astro` package?" };
 }
-function getAddMigrationURL(context, status) {
-  return `${context.payload.pull_request.head.repo.html_url}/new/${context.payload.pull_request.head.ref}?filename=migrations/${status.newFilename}&value=${encodeURIComponent(status.newFileContent)}`;
+function formatVerifyResult({ success, message }) {
+  return message;
 }
 async function getCommentId(params) {
   const comments = await octokit.rest.issues.listComments(params);
