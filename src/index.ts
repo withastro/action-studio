@@ -5,6 +5,8 @@ import path from 'node:path'
 import resolve from 'resolve-package-path'
 import { execa } from 'execa'
 
+const UNIQUE_IDENTIFIER = '<!-- @astrojs/action-studio -->';
+
 let octokit: ReturnType<typeof github['getOctokit']>;
 async function run(): Promise<void> {
   try {
@@ -73,7 +75,7 @@ async function verify(context: typeof github.context) {
 
 function formatVerifyResult({ success, message }: { success: boolean, message: string }) {
   // TODO: Format this message 
-  return message;
+  return UNIQUE_IDENTIFIER + '\n' + message;
 }
 
 function getAddMigrationURL(context: typeof github.context, status: any) {
@@ -87,7 +89,7 @@ async function getCommentId(
   const botComment = comments.data.find(
     (comment) =>
       comment.user?.login === "github-actions[bot]" &&
-      comment.body_text?.toLowerCase().includes('migration')
+      comment.body?.toLowerCase().includes(UNIQUE_IDENTIFIER)
   )
   return botComment ? botComment.id : null
 }
