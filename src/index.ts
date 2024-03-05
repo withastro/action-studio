@@ -64,17 +64,24 @@ async function verify(context: typeof github.context) {
     throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`)
   }
   const bin = path.join(path.dirname(root), 'astro.js')
-  const{ all, exitCode } = await execa(bin, ['db', 'verify'], { encoding: 'utf8', detached: true, reject: false, all: true })
-  if (exitCode === 0) {
-    return { success: true, message: all.toString() }
-  } else {
-    return { success: false, message: all.toString() }
-  }
+  const{ stdout } = await execa(bin, ['db', 'verify', '--json'], { encoding: 'utf8', detached: true, reject: false, all: true })
+  const result = JSON.parse(stdout.toString());
+  return result;
 }
 
-function formatVerifyResult({ success, message }: { success: boolean, message: string }) {
-  // TODO: Format this message 
-  return UNIQUE_IDENTIFIER + '\n' + message;
+// TODO: Format these messages better
+function formatVerifyResult(result: { code: string, message: string, data: unknown }) {
+  const { code, message, data } = result;
+  if (code === 'MATCH') {
+    return 'Your database schema is up-to-date.';
+  }
+  if (code === 'NO_MATCH') {
+    return 'Your database schema is ahead of production database.\nIt can be automatically migrated by Astro.';
+  }
+  if (code === 'DATA_LOSS') {
+    return message;
+  }
+  return 'Unknown error: ' + JSON.stringify(result);
 }
 
 function getAddMigrationURL(context: typeof github.context, status: any) {
