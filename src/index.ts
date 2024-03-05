@@ -13,7 +13,6 @@ async function run(): Promise<void> {
     const token = core.getInput('github-token')
     octokit = github.getOctokit(token)
     const { eventName, repo, payload } = github.context
-    console.log(payload.ref_name);
     // On push to any branch defined in `on: ...`, run `astro db push`
     if (eventName === 'push') {
       await push();
