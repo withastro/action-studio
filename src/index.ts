@@ -13,9 +13,9 @@ async function run(): Promise<void> {
     const token = core.getInput('github-token')
     octokit = github.getOctokit(token)
     const { eventName, repo, payload } = github.context
-
-    // On push to default branch, push to Astro Studio
-    if (eventName === 'push' && payload.ref === `refs/heads/${payload.repository?.default_branch ?? 'main'}`) {
+    console.log(payload.ref_name);
+    // On push to any branch defined in `on: ...`, run `astro db push`
+    if (eventName === 'push') {
       await push();
       return;
     }
