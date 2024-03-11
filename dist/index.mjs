@@ -2927,7 +2927,10 @@ async function run() {
     return;
   }
   const comment = { ...repo, issue_number, body: formattedMessage };
-  const comments = await octokit.rest.issues.listComments({ ...repo, issue_number });
+  const comments = await octokit.rest.issues.listComments({
+    ...repo,
+    issue_number
+  });
   const comment_id = await getCommentId(comments.data);
   if (comment_id) {
     await octokit.rest.issues.updateComment({
@@ -2943,19 +2946,33 @@ async function run() {
 async function push() {
   const root = resolve("astro", process.cwd());
   if (!root) {
-    throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`);
+    throw new Error(
+      `Unable to locate the "astro" package. Did you remember to run install?`
+    );
   }
   const bin = path$4.join(path$4.dirname(root), "astro.js");
   console.log("Pushing database schema...");
-  await execa(bin, ["db", "push"], { encoding: "utf8", detached: true, stdio: "inherit" });
+  await execa(bin, ["db", "push"], {
+    encoding: "utf8",
+    detached: true,
+    stdio: "inherit"
+  });
 }
 async function verify(context) {
   const root = resolve("astro", process.cwd());
   if (!root) {
-    throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`);
+    throw new Error(
+      `Unable to locate the "astro" package. Did you remember to run install?`
+    );
   }
   const bin = path$4.join(path$4.dirname(root), "astro.js");
-  const { stdout } = await execa(bin, ["db", "verify", "--json"], { encoding: "utf8", detached: true, reject: false, all: true });
+  const { stdout } = await execa(bin, ["db", "verify", "--json"], {
+    encoding: "utf8",
+    detached: true,
+    // @ts-expect-error
+    stdout: ["inherit", "pipe"],
+    stderr: "inherit"
+  });
   const result = JSON.parse(stdout.toString());
   return result;
 }
