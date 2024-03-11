@@ -32566,6 +32566,7 @@ async function run() {
     const token = coreExports.getInput("github-token");
     octokit = getOctokit_1(token);
     const { eventName, repo, payload } = context;
+    console.log("Event:", eventName);
     if (eventName === "push") {
       await push();
       return;
@@ -32601,6 +32602,7 @@ async function push() {
     throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`);
   }
   const bin = path$4.join(path$4.dirname(root), "astro.js");
+  console.log("Pushing database schema...");
   await execa(bin, ["db", "push"], { encoding: "utf8", detached: true, stdio: "inherit" });
 }
 async function verify(context) {
