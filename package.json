@@ -15,8 +15,8 @@
     ".": {
       "import": "./dist/index.mjs"
     },
-    "./pre": {
-      "import": "./dist/pre.mjs"
+    "./notify": {
+      "import": "./dist/notify.mjs"
     }
   },
   "devDependencies": {

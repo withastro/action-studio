@@ -15,5 +15,7 @@ inputs:
 runs:
   using: node20
   main: dist/index.mjs
-  pre: dist/pre.mjs
+  pre: dist/notify.mjs
   pre-if: always()
+  post: dist/notify.mjs
+  post-if: always()
