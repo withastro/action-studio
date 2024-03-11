@@ -48,7 +48,9 @@ async function run() {
     run_id: runId
   });
   console.log("Jobs:", jobInfo.data.jobs);
-  const job = jobInfo.data.jobs.find((job2) => job2.name === process.env.GITHUB_JOB);
+  const job = jobInfo.data.jobs.find(
+    (job2) => job2.name === process.env.GITHUB_JOB
+  );
   console.log("Job:", job);
   if (!job) {
     return;
@@ -56,6 +58,19 @@ async function run() {
   console.log("Job ID:", job.id);
   console.log("Job URL:", job.html_url);
   console.log("Job Status:", job.status);
+  await fetch("https://webhook.services.astro.build/github-action/webhook", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      data: {
+        owner: repo.owner,
+        name: repo.repo,
+        url: job.html_url
+      }
+    })
+  });
 }
 run().catch((error) => {
   if ("message" in error) {
