@@ -55,7 +55,7 @@ async function push() {
     throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`)
   }
   const bin = path.join(path.dirname(root), 'astro.js')
-  await execa(bin, ['db', 'push'], { encoding: 'utf8', detached: true, reject: false })
+  await execa(bin, ['db', 'push'], { encoding: 'utf8', detached: true, stdio: 'inherit'})
 }
 
 async function verify(context: typeof github.context) {
