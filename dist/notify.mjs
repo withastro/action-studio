@@ -64,18 +64,21 @@ async function run() {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
+      type: "notify",
       data: {
         owner: repo.owner,
         name: repo.repo,
         url: job.html_url
       }
     })
+  }).catch((error2) => {
+    console.error("Failed to notify Astro Studio:", error2);
   });
 }
-run().catch((error) => {
-  if ("message" in error) {
-    coreExports.setFailed(error.message);
+run().catch((error2) => {
+  if ("message" in error2) {
+    coreExports.setFailed(error2.message);
   } else {
-    coreExports.setFailed("Unknown error: " + JSON.stringify(error));
+    coreExports.setFailed("Unknown error: " + JSON.stringify(error2));
   }
 });

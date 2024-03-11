@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
+import { error } from "console";
 
 async function run(): Promise<void> {
   const token = core.getInput("github-token");
@@ -44,12 +45,15 @@ async function run(): Promise<void> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
+      type: 'notify',
       data: {
         owner: repo.owner,
         name: repo.repo,
         url: job.html_url,
       },
     }),
+  }).catch((error) => {
+    console.error("Failed to notify Astro Studio:", error);
   });
 }
 
