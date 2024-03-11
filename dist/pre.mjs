@@ -30,9 +30,14 @@ import 'diagnostics_channel';
 async function run() {
   const token = coreExports.getInput("github-token");
   const octokit = getOctokit_1(token);
-  const { eventName, repo, payload } = context;
+  const { eventName, repo, runId } = context;
   console.log(context);
   console.log(process.env);
+  console.log({
+    owner: repo.owner,
+    repo: repo.repo,
+    run_id: runId
+  });
   console.log("Event:", eventName);
   if (eventName !== "push") {
     return;
@@ -40,7 +45,7 @@ async function run() {
   const jobInfo = await octokit.rest.actions.listJobsForWorkflowRun({
     owner: repo.owner,
     repo: repo.repo,
-    run_id: payload.runId
+    run_id: runId
   });
   console.log("Job info:", jobInfo);
   const job = jobInfo.data.jobs.find((job2) => job2.name === "build");
