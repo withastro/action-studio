@@ -48,7 +48,7 @@ async function run() {
     run_id: runId
   });
   console.log("Jobs:", jobInfo.data.jobs);
-  const job = jobInfo.data.jobs.find((job2) => job2.name === "GITHUB_JOB");
+  const job = jobInfo.data.jobs.find((job2) => job2.name === process.env.GITHUB_JOB);
   console.log("Job:", job);
   if (!job) {
     return;

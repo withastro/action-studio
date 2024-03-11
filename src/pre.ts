@@ -32,7 +32,7 @@ async function run(): Promise<void> {
       run_id: runId
     });
     console.log('Jobs:', jobInfo.data.jobs);
-    const job = jobInfo.data.jobs.find(job => job.name === 'GITHUB_JOB');
+    const job = jobInfo.data.jobs.find(job => job.name === process.env.GITHUB_JOB);
     console.log('Job:', job);
     if (!job) {
       return;
