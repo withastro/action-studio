@@ -2920,6 +2920,7 @@ async function run() {
   }
   const issue_number = payload.pull_request?.number;
   const verifyResult = await verify();
+  console.log("Verify:", verifyResult);
   const formattedMessage = formatVerifyResult(verifyResult);
   if (!issue_number) {
     const method = verifyResult.success ? "info" : "setFailed";

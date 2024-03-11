@@ -21,6 +21,7 @@ async function run(): Promise<void> {
   // Otherwise, run verify and leave a PR comment
   const issue_number = payload.pull_request?.number;
   const verifyResult = await verify(github.context);
+  console.log('Verify:', verifyResult);
   const formattedMessage = formatVerifyResult(verifyResult);
 
   // TODO: different message for success vs. failure
