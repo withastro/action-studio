@@ -2971,10 +2971,10 @@ async function verify(context) {
   const { stdout } = await execa(bin, ["db", "verify", "--json"], {
     encoding: "utf8",
     detached: true,
-    // @ts-expect-error
-    stdout: ["inherit", "pipe"],
+    stdout: "pipe",
     stderr: "inherit"
   });
+  console.log(stdout);
   const result = JSON.parse(stdout.toString());
   return result;
 }
