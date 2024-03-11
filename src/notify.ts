@@ -53,10 +53,13 @@ async function run(): Promise<void> {
       },
     }),
   }).then(() => {
-    console.error("Notify complete!");
+    console.log("fetch complete!");
   }).catch((error) => {
-    console.error("Failed to notify Astro Studio:", error);
+    console.error("Failed to notify:", error);
   });
+
+  console.log("Notify complete!");
+
 }
 
 await run().catch((error) => {

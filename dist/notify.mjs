@@ -72,10 +72,11 @@ async function run() {
       }
     })
   }).then(() => {
-    console.error("Notify complete!");
+    console.log("fetch complete!");
   }).catch((error2) => {
-    console.error("Failed to notify Astro Studio:", error2);
+    console.error("Failed to notify:", error2);
   });
+  console.log("Notify complete!");
 }
 await run().catch((error2) => {
   if ("message" in error2) {
