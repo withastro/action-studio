@@ -52,6 +52,8 @@ async function run(): Promise<void> {
         url: job.html_url,
       },
     }),
+  }).then(() => {
+    console.error("Notify complete!");
   }).catch((error) => {
     console.error("Failed to notify Astro Studio:", error);
   });

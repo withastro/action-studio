@@ -19,12 +19,13 @@ async function run(): Promise<void> {
   }
 
   // Otherwise, run verify and leave a PR comment
-  const issue_number = payload.pull_request?.number;
   const verifyResult = await verify(github.context);
   console.log('Verify:', verifyResult);
   const formattedMessage = formatVerifyResult(verifyResult);
+  console.log('Verify Message:', verifyResult);
 
   // TODO: different message for success vs. failure
+  const issue_number = payload.pull_request?.number;
   if (!issue_number) {
     const method = verifyResult.success ? "info" : "setFailed";
     core[method](formattedMessage);

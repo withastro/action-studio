@@ -2918,10 +2918,11 @@ async function run() {
     await push();
     return;
   }
-  const issue_number = payload.pull_request?.number;
   const verifyResult = await verify();
   console.log("Verify:", verifyResult);
   const formattedMessage = formatVerifyResult(verifyResult);
+  console.log("Verify Message:", verifyResult);
+  const issue_number = payload.pull_request?.number;
   if (!issue_number) {
     const method = verifyResult.success ? "info" : "setFailed";
     core$1[method](formattedMessage);
