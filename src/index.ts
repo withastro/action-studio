@@ -14,6 +14,7 @@ async function run(): Promise<void> {
     octokit = github.getOctokit(token)
     const { eventName, repo, payload } = github.context
     // On push to any branch defined in `on: ...`, run `astro db push`
+    console.log('Event:', eventName);
     if (eventName === 'push') {
       await push();
       return;
@@ -55,6 +56,7 @@ async function push() {
     throw new Error(`Unable to locate the "astro" package. Did you remember to run install?`)
   }
   const bin = path.join(path.dirname(root), 'astro.js')
+  console.log('Pushing database schema...');
   await execa(bin, ['db', 'push'], { encoding: 'utf8', detached: true, stdio: 'inherit'})
 }
 
