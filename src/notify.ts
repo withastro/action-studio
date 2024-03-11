@@ -59,7 +59,7 @@ async function run(): Promise<void> {
   });
 }
 
-run().catch((error) => {
+await run().catch((error) => {
   if ("message" in error) {
     core.setFailed(error.message);
   } else {

@@ -77,7 +77,7 @@ async function run() {
     console.error("Failed to notify Astro Studio:", error2);
   });
 }
-run().catch((error2) => {
+await run().catch((error2) => {
   if ("message" in error2) {
     coreExports.setFailed(error2.message);
   } else {
