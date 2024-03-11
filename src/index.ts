@@ -7,11 +7,9 @@ import { execa } from 'execa'
 
 const UNIQUE_IDENTIFIER = '<!-- @astrojs/action-studio -->';
 
-let octokit: ReturnType<typeof github['getOctokit']>;
 async function run(): Promise<void> {
-  try {
     const token = core.getInput('github-token')
-    octokit = github.getOctokit(token)
+    const octokit = github.getOctokit(token)
     const { eventName, repo, payload } = github.context
     // On push to any branch defined in `on: ...`, run `astro db push`
     console.log('Event:', eventName);
@@ -33,7 +31,8 @@ async function run(): Promise<void> {
     }
 
     const comment = { ...repo, issue_number, body: formattedMessage };
-    const comment_id = await getCommentId({ ...repo, issue_number })
+  const comments = await octokit.rest.issues.listComments({ ...repo, issue_number });
+    const comment_id = await getCommentId(comments.data);
 
     if (comment_id) {
       await octokit.rest.issues.updateComment({
@@ -45,9 +44,6 @@ async function run(): Promise<void> {
         ...comment,
       })
     }
-  } catch (error) {
-    if (error instanceof Error) core.setFailed(error.message)
-  }
 }
 
 async function push() {
@@ -86,15 +82,10 @@ function formatVerifyResult(result: { code: string, message: string, data: unkno
   return 'Unknown error: ' + JSON.stringify(result);
 }
 
-function getAddMigrationURL(context: typeof github.context, status: any) {
-  return `${context.payload.pull_request!.head.repo.html_url}/new/${context.payload.pull_request!.head.ref}?filename=migrations/${status.newFilename}&value=${encodeURIComponent(status.newFileContent)}`;
-}
-
-async function getCommentId(
-  params: { repo: string; owner: string; issue_number: number }
+function getCommentId(
+  comments: {user: {login: string} | null, body?: string, id: number}[]
 ) {
-  const comments = await octokit.rest.issues.listComments(params)
-  const botComment = comments.data.find(
+  const botComment = comments.find(
     (comment) =>
       comment.user?.login === "github-actions[bot]" &&
       comment.body?.toLowerCase().includes(UNIQUE_IDENTIFIER)
@@ -102,4 +93,10 @@ async function getCommentId(
   return botComment ? botComment.id : null
 }
 
-run()
+run().catch((error) => {
+  if ('message' in error) {
+    core.setFailed(error.message)
+  } else {
+    core.setFailed('Unknown error: ' + JSON.stringify(error))
+  }
+});

@@ -15,3 +15,5 @@ inputs:
 runs:
   using: node20
   main: dist/index.mjs
+  pre: dist/pre.mjs
+  pre-if: always()

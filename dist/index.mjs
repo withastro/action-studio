@@ -32560,40 +32560,35 @@ function execa(file, args, options) {
 }
 
 const UNIQUE_IDENTIFIER = "<!-- @astrojs/action-studio -->";
-let octokit;
 async function run() {
-  try {
-    const token = coreExports.getInput("github-token");
-    octokit = getOctokit_1(token);
-    const { eventName, repo, payload } = context;
-    console.log("Event:", eventName);
-    if (eventName === "push") {
-      await push();
-      return;
-    }
-    const issue_number = payload.pull_request?.number;
-    const verifyResult = await verify(context);
-    const formattedMessage = formatVerifyResult(verifyResult);
-    if (!issue_number) {
-      const method = verifyResult.success ? "info" : "setFailed";
-      core$2[method](formattedMessage);
-      return;
-    }
-    const comment = { ...repo, issue_number, body: formattedMessage };
-    const comment_id = await getCommentId({ ...repo, issue_number });
-    if (comment_id) {
-      await octokit.rest.issues.updateComment({
-        ...comment,
-        comment_id
-      });
-    } else {
-      await octokit.rest.issues.createComment({
-        ...comment
-      });
-    }
-  } catch (error) {
-    if (error instanceof Error)
-      coreExports.setFailed(error.message);
+  const token = coreExports.getInput("github-token");
+  const octokit = getOctokit_1(token);
+  const { eventName, repo, payload } = context;
+  console.log("Event:", eventName);
+  if (eventName === "push") {
+    await push();
+    return;
+  }
+  const issue_number = payload.pull_request?.number;
+  const verifyResult = await verify();
+  const formattedMessage = formatVerifyResult(verifyResult);
+  if (!issue_number) {
+    const method = verifyResult.success ? "info" : "setFailed";
+    core$2[method](formattedMessage);
+    return;
+  }
+  const comment = { ...repo, issue_number, body: formattedMessage };
+  const comments = await octokit.rest.issues.listComments({ ...repo, issue_number });
+  const comment_id = await getCommentId(comments.data);
+  if (comment_id) {
+    await octokit.rest.issues.updateComment({
+      ...comment,
+      comment_id
+    });
+  } else {
+    await octokit.rest.issues.createComment({
+      ...comment
+    });
   }
 }
 async function push() {
@@ -32628,11 +32623,16 @@ function formatVerifyResult(result) {
   }
   return "Unknown error: " + JSON.stringify(result);
 }
-async function getCommentId(params) {
-  const comments = await octokit.rest.issues.listComments(params);
-  const botComment = comments.data.find(
+function getCommentId(comments) {
+  const botComment = comments.find(
     (comment) => comment.user?.login === "github-actions[bot]" && comment.body?.toLowerCase().includes(UNIQUE_IDENTIFIER)
   );
   return botComment ? botComment.id : null;
 }
-run();
+run().catch((error) => {
+  if ("message" in error) {
+    coreExports.setFailed(error.message);
+  } else {
+    coreExports.setFailed("Unknown error: " + JSON.stringify(error));
+  }
+});
