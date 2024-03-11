@@ -40,7 +40,7 @@ async function run() {
   const jobInfo = await octokit.rest.actions.listJobsForWorkflowRun({
     owner: repo.owner,
     repo: repo.repo,
-    run_id: payload.run_id
+    run_id: payload.runId
   });
   console.log("Job info:", jobInfo);
   const job = jobInfo.data.jobs.find((job2) => job2.name === "build");
