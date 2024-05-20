@@ -20,9 +20,9 @@ async function run(): Promise<void> {
 
   // Otherwise, run verify and leave a PR comment
   const verifyResult = await verify(github.context);
-  console.log('Verify:', verifyResult);
+  console.log("Verify:", verifyResult);
   const formattedMessage = formatVerifyResult(verifyResult);
-  console.log('Verify Message:', verifyResult);
+  console.log("Verify Message:", verifyResult);
 
   // TODO: different message for success vs. failure
   const issue_number = payload.pull_request?.number;
@@ -32,7 +32,11 @@ async function run(): Promise<void> {
     return;
   }
 
-  const comment = { ...repo, issue_number, body: formattedMessage };
+  const comment = {
+    ...repo,
+    issue_number,
+    body: `${UNIQUE_IDENTIFIER}\n\n${formattedMessage}`,
+  };
   const comments = await octokit.rest.issues.listComments({
     ...repo,
     issue_number,
