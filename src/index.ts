@@ -32,6 +32,9 @@ async function run(): Promise<void> {
     return;
   }
 
+  // If everything is up-to-date, don't comment
+  if (verifyResult.code === "MATCH") return;
+
   const comment = { ...repo, issue_number, body: formattedMessage };
   const comments = await octokit.rest.issues.listComments({
     ...repo,
