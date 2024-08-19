@@ -2928,7 +2928,13 @@ async function run() {
     core$1[method](formattedMessage);
     return;
   }
-  const comment = { ...repo, issue_number, body: formattedMessage };
+  const comment = {
+    ...repo,
+    issue_number,
+    body: `${UNIQUE_IDENTIFIER}
+
+${formattedMessage}`
+  };
   const comments = await octokit.rest.issues.listComments({
     ...repo,
     issue_number
